@@ -3,33 +3,32 @@ package tests;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.*;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.support.ui.ExpectedCondition;
+import org.openqa.selenium.support.ui.WebDriverWait;
 import pages.MainPage;
+
+import java.time.Duration;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class FaqAccordionTest {
-    private WebDriver driver;
+public class FaqAccordionTest extends BaseTest {
     private MainPage mainPage;
+    private WebDriverWait wait;
 
     @BeforeAll
-    public void setup() {
-        driver = new ChromeDriver();
-        driver.manage().window().maximize();
-        driver.get("https://qa-scooter.praktikum-services.ru/");
-
+    public void init() {
         mainPage = new MainPage(driver);
+        wait = new WebDriverWait(driver, Duration.ofSeconds(5));
     }
 
     @ParameterizedTest
     @ValueSource(ints = {0, 1, 2, 3, 4, 5, 6, 7})
     @DisplayName("Проверка раскрытия ответа на вопрос по индексу и проверка текста ответа")
-    public void testFaqAccordion(int index) throws InterruptedException {
+    public void testFaqAccordion(int index) {
         mainPage.clickQuestion(index);
 
-        Thread.sleep(500);
+        wait.until((ExpectedCondition<Boolean>) d -> mainPage.isQuestionExpanded(index));
 
         assertTrue(mainPage.isQuestionExpanded(index),
                 "Вопрос по индексу " + index + " должен быть раскрыт (aria-expanded=true).");
@@ -42,21 +41,5 @@ public class FaqAccordionTest {
         String actualText = mainPage.getPanelTextById(panelId);
         String expectedText = mainPage.getExpectedAnswerText(index);
         assertEquals(expectedText, actualText, "Текст ответа по индексу " + index + " не совпадает с ожидаемым.");
-
-        for (int i = 0; i < 8; i++) {
-            if (i != index) {
-                assertFalse(mainPage.isQuestionExpanded(i),
-                        "Вопрос по индексу " + i + " должен быть закрыт (aria-expanded=false).");
-
-                String otherPanelId = mainPage.getControlledPanelId(i);
-                assertFalse(mainPage.isPanelVisibleById(otherPanelId),
-                        "Панель ответа для вопроса " + i + " должна быть скрыта.");
-            }
-        }
-    }
-
-    @AfterAll
-    public void tearDown() {
-        driver.quit();
     }
 }

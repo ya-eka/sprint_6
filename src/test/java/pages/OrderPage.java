@@ -4,6 +4,10 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+
+import java.time.Duration;
 
 public class OrderPage {
     private final WebDriver driver;
@@ -24,8 +28,8 @@ public class OrderPage {
     private final By blackColorCheckbox = By.id("black");
     private final By greyColorCheckbox = By.id("grey");
     private final By commentInput = By.xpath("//input[@placeholder='Комментарий для курьера']");
-    private final By orderButton = By.xpath("//button[text()='Заказать']");
-    private final By confirmYesButton = By.xpath("html/body/div/div/div[2]/div[3]/button[2]");
+    private final By orderButton = By.xpath("//button[contains(@class,'Button_Button__ra12g') and contains(@class,'Button_Middle__1CSJM') and text()='Заказать']");
+    private final By confirmYesButton = By.xpath("//div[contains(@class,'Order_Buttons')]/button[text()='Да']");
     private final By successPopup = By.className("Order_ModalHeader__3FDaJ");
 
     public void fillOrderForm(String name, String surname, String address, String metro, String phone) {
@@ -62,13 +66,15 @@ public class OrderPage {
         driver.findElement(commentInput).sendKeys(comment);
     }
 
-
     public void confirmOrder() {
         driver.findElement(orderButton).click();
-        driver.findElement(confirmYesButton).click();
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(5));
+        wait.until(ExpectedConditions.elementToBeClickable(confirmYesButton)).click();
     }
 
     public boolean isOrderSuccessPopupDisplayed() {
-        return driver.findElement(successPopup).isDisplayed();
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        WebElement popup = wait.until(ExpectedConditions.visibilityOfElementLocated(successPopup));
+        return popup.getText().contains("Заказ успешно создан");
     }
 }
